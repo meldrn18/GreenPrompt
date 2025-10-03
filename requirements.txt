@@ -1,0 +1,6 @@
+openai>=1.30.0
+requests>=2.31.0
+codecarbon>=2.3.4
+ecologits>=0.1.0
+pandas>=2.2.2
+numpy>=1.26.4
