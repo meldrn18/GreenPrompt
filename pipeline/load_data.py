@@ -9,6 +9,7 @@ for i in dataset:
     filtered_dataset.append({
         "task_id":i["task_id"],
         "text":i["text"],
+        "solution":i["code"],
         "test_list":i["test_list"]
     })
 
