@@ -29,12 +29,3 @@ def send_prompt(mbpp_problem, prompt_type, model=openai_model, max_tokens=1024):
     generated_code = response.choices[0].message.content.strip()
     return generated_code, carbon
 
-sample_problem = {
-    "task_id": 1,
-    "text": "Write a Python function to return the factorial of a number.",
-    "solution": "def factorial(n): return 1 if n==0 else n*factorial(n-1)",
-    "test_list": ["assert factorial(5) == 120"]
-}
-
-result = send_prompt(sample_problem, "chain_of_thought")
-print(result)
