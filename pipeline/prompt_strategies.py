@@ -13,4 +13,6 @@ def chain_of_thought(text):
 def reflexion(text):
     return f"First write a python function to solve the given problem, then reflect on it and make improvements:\n{text}"
 
+PROMPT_STRATEGIES = {"zero_shot": zero_shot, "few_shot": few_shot, "chain_of_thought": chain_of_thought, "reflexion": reflexion}
+
 

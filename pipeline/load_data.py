@@ -13,6 +13,6 @@ for i in dataset:
         "test_list":i["test_list"]
     })
 
-with open("filtered_dataset.json", "w") as f:
+with open("data/filtered_dataset.json", "w") as f:
     json.dump(filtered_dataset, f, indent=2)
     
