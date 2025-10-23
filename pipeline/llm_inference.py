@@ -5,6 +5,9 @@ from datetime import datetime
 import os
 from apply_strategy import apply_strategy
 from prompt_strategies import PROMPT_STRATEGIES
+import re
+from multiprocessing import  Queue
+from codecarbon import EmissionsTracker
 
 #configure ai connection
 openai_model = "gpt-3.5-turbo" #can be changed to cover more llms
@@ -14,18 +17,53 @@ OpenAI.api_key = os.environ.get("OPENAI_API_KEY")
 
 client = OpenAI(api_key=OpenAI.api_key)
 
+#queue all generated code will be appended to for execution
+execution_queue = None
+
+def get_execution_queue():
+    global execution_queue
+    if execution_queue is None:
+        execution_queue = Queue()
+    return execution_queue
+
 #send prompt of mbpp problem to openai, return generated response
 def send_prompt(mbpp_problem, prompt_type, model=openai_model, max_tokens=1024):
     #format the prompt by strategy 
     prompt = apply_strategy(mbpp_problem,PROMPT_STRATEGIES[prompt_type])
     #log inference carbon footprint with EcoLogits
-    carbon = EcoLogits()
-    response = client.chat.completions.create(
-        model=model,
-        messages=[{"role":"user", "content":prompt}],
-        max_tokens= max_tokens,
-        temperature=0.0,
+    carbon = EmissionsTracker(output_file="emissions.csv",
+        save_to_file=True,
+        measure_power_secs=1,
+        log_level="error",
+        tracking_mode="machine",
     )
-    generated_code = response.choices[0].message.content.strip()
-    return generated_code, carbon
+    try:
+        carbon.start()
+        response = client.chat.completions.create(
+            model=model,
+            messages=[{"role":"user", "content":prompt}],
+            max_tokens= max_tokens,
+            temperature=0.0,
+        )
+        emissions = carbon.stop()
+        generated_response = response.choices[0].message.content.strip()
+        #extracting code from response
+        match = re.search(r"```(?:python)?\s*(.*?)```", generated_response, re.DOTALL)
+        if match:
+            generated_code = match.group(1).strip()
+        else:
+            #if not found return whole response
+            #generated_code = generated_response.strip()
+            generated_code = "didnt work"
+        #add generated code to queue
+        q = get_execution_queue()
+        q.put(generated_code)
+        return generated_code, emissions
+    except Exception as e:
+        carbon.stop()
+        print(f"error during llm inference: {e}")
+        return f"error during llm inference: {e}", None
+  
+
+
 
