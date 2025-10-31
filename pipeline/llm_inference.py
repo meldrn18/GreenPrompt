@@ -8,6 +8,8 @@ from prompt_strategies import PROMPT_STRATEGIES
 import re
 from multiprocessing import  Queue
 from codecarbon import EmissionsTracker
+import io
+import contextlib
 
 #configure ai connection
 openai_model = "gpt-3.5-turbo" #can be changed to cover more llms
@@ -25,6 +27,18 @@ def get_execution_queue():
     if execution_queue is None:
         execution_queue = Queue()
     return execution_queue
+
+def check_correct(generated_code: str, test_list: list) -> bool:
+    local_env = {}
+    try:
+        exec(generated_code, {}, local_env)
+        with contextlib.redirect_stdout(io.StringIO()):
+            for test in test_list:
+                exec(test,{}, local_env)
+        return True
+    except Exception as e:
+        print(f"failed test: {e}")
+        return False
 
 #send prompt of mbpp problem to openai, return generated response
 def send_prompt(mbpp_problem, prompt_type, model=openai_model, max_tokens=1024):
@@ -55,9 +69,15 @@ def send_prompt(mbpp_problem, prompt_type, model=openai_model, max_tokens=1024):
             #if not found return whole response
             #generated_code = generated_response.strip()
             generated_code = "didnt work"
-        #add generated code to queue
-        q = get_execution_queue()
-        q.put(generated_code)
+        #check response correctness
+        if check_correct(generated_code, mbpp_problem["test_list"]):
+            #add generated code to queue
+            q = get_execution_queue()
+            q.put(generated_code)
+            print("code correct, added to queue")
+        else:
+            print("code failed correctness, not added")
+
         return generated_code, emissions
     except Exception as e:
         carbon.stop()

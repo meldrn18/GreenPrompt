@@ -4,6 +4,7 @@ import contextlib
 from codecarbon import EmissionsTracker
 import multiprocessing
 import math, random, itertools
+import os
 
 # Safe built-ins for sanbox
 safe_builtins = {
@@ -42,9 +43,13 @@ def execution_worker(code,queue):
             tracking_mode="machine",)
         try:
             carbon_tracker.start()
+            process = psutil.Process(os.getpid())
+            mem_usage_before = process.memory_info().rss 
             exec(code, sandbox_globals)
+            mem_usage_after = process.memory_info().rss
+            max_memory_used = mem_usage_after - mem_usage_before
             emissions = carbon_tracker.stop()
-            queue.put((f.getvalue(), emissions))
+            queue.put((f.getvalue(), emissions, max_memory_used/(1024**2)))#convert vto MB
         except Exception as e:
             carbon_tracker.stop()
             queue.put((f"Error: {e}", None))
@@ -64,13 +69,17 @@ def execute_generated_code(code, timeout = 10):
         return "timed out", None
     if queue.empty():
         return "no output", None
-    output, emissions = queue.get()
-    return output, emissions
+    output, emissions, memory_mb = queue.get()
+    return output, emissions, memory_mb
 
 #safety for windows ->only run multiprocessing code under main guard
 if __name__ == "__main__":
-    test_code = "print('Hello from sandbox!')"
-    output, emissions = execute_generated_code(test_code)
+    test_code = """
+a = [i for i in range(1000000)]
+print('Hello from sandbox!')
+"""
+    output, emissions, memory_mb = execute_generated_code(test_code)
     print("--- Sandbox Test ---")
     print("Output:", output)
     print("Emissions (kg CO₂):", emissions)
+    print("Memory used (MB):", memory_mb)
