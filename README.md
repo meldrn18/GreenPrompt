@@ -1,13 +1,16 @@
 # GreenPrompt
+## Investigating the Carbon Impact of Prompt Engineering on Code Generation
 This project explores the intersection of prompt engineering and environmental sustainability in large language model (LLM)–based code generation. While prompt design is widely known to influence the accuracy and reasoning of LLM outputs, its impact on the carbon footprint of the generated code remains underexplored.
 
-We hypothesize that different prompting strategies—such as zero-shot, few-shot, chain-of-thought (CoT), and self-reflection (e.g., Reflexion)—not only affect correctness but also influence code complexity, runtime efficiency, and energy consumption. The project aims to systematically evaluate these effects.
+
+
+
 
 # GreenPrompt
 
-> Investigating the Carbon Impact of Prompt Engineering in Code Generation
-
 Honours Individual Project dissertation by Melissa Dorrian (University of Glasgow, 2026). Investigating how different LLM prompting strategies affect the carbon emissions of generated Python code, using the MBPP benchmark dataset.
+Four different prompting strategies were analysed; zero-shot, few-shot, chain-of-thought and reflexion. Additional analysis of metrics such as code complexity, memory usage and correctness was conducted to identify trade-offs between factors.
+This experimental framework serves as a research contribution and a practical tool, enabling reproducible comparison of prompting strategies across measurable environmental and code quality metrics.
 
 ---
 
