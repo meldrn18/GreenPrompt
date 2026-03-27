@@ -14,7 +14,6 @@ def load_data():
             "test_list":i["test_list"]
         })
 
-    #os.makedirs("pipeline/data", exist_ok=True)
     with open("data/filtered_dataset.json", "w") as f:
         json.dump(filtered_dataset, f, indent=2)
     print(f"Total problems: {len(filtered_dataset)}")
@@ -22,11 +21,11 @@ def load_data():
 def create_examples(input_path="data/filtered_dataset.json", output_path="data/mbpp_examples.json"):
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-    # Load your filtered MBPP dataset
+    #load filtered MBPP dataset
     with open(input_path, "r") as f:
         dataset = json.load(f)
 
-    # Build a dictionary keyed by task_id
+    #build dictionary keyed by task_id
     examples = {}
     for entry in dataset:
         task_id = str(entry["task_id"])
@@ -35,11 +34,11 @@ def create_examples(input_path="data/filtered_dataset.json", output_path="data/m
             "solution": entry["solution"]
         }
 
-    # Save to JSON file
+    #save to JSON file
     with open(output_path, "w") as f:
         json.dump(examples, f, indent=4)
 
-    print(f"✅ Few-shot examples saved to {output_path}")
+    print(f"Few-shot examples saved to {output_path}")
     print(f"Total examples: {len(examples)}")
 
 def merge_examples(filtered_path = "data/filtered_dataset.json",
